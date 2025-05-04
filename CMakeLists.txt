@@ -1,4 +1,4 @@
-# author Eray Ozturk | erayozturk1@gmail.com
+# Copyright (c) 2025 Eray Ozturk <erayozturk1@gmail.com>
 # url github.com/diffstorm
 cmake_minimum_required(VERSION 3.12)
 project(json_parser LANGUAGES C CXX)
