@@ -22,9 +22,17 @@ extern "C" {
 #include <ctype.h>
 #include <math.h>
 
+#ifndef JSON_DEFAULT_MAX_TOKENS
 #define JSON_DEFAULT_MAX_TOKENS 128
+#endif
+
+#ifndef JSON_DEFAULT_MAX_DEPTH
 #define JSON_DEFAULT_MAX_DEPTH 32
+#endif
+
+#ifndef JSON_DEFAULT_MAX_STRING
 #define JSON_DEFAULT_MAX_STRING 256
+#endif
 
 typedef enum {
     JSON_ERROR_NONE = 0,
