@@ -231,6 +231,8 @@ static int json_add_token(json_parser_t *parser, json_token_type_t type)
     json_token_t *token = &parser->tokens[parser->token_count++];
     memset(token, 0, sizeof(*token));
     token->type = type;
+    token->start = parser->pos;
+    token->end = parser->pos;
     return 0;
 }
 
@@ -655,6 +657,7 @@ static int json_parse_object(json_parser_t *parser)
         return -1;
     }
 
+    size_t start_pos = parser->pos;
     parser->depth++;
 
     if(json_add_token(parser, JSON_TOKEN_OBJECT) < 0)
@@ -662,12 +665,16 @@ static int json_parse_object(json_parser_t *parser)
         return -1;
     }
 
+    json_token_t *obj_token = &parser->tokens[parser->token_count - 1];
+    obj_token->start = start_pos;
+    obj_token->end = 0;
     parser->pos++; // Skip '{'
     json_skip_whitespace(parser);
 
     if(parser->json[parser->pos] == '}')
     {
         parser->pos++;
+        obj_token->end = parser->pos; // Set end after closing '}'
         parser->depth--;
         return 0;
     }
@@ -684,6 +691,7 @@ static int json_parse_object(json_parser_t *parser)
         if(parser->json[parser->pos] == '}')
         {
             parser->pos++;
+            obj_token->end = parser->pos;
             parser->depth--;
             return 0;
         }
@@ -738,6 +746,7 @@ static int json_parse_array(json_parser_t *parser)
         return -1;
     }
 
+    size_t start_pos = parser->pos; // Position of '['
     parser->depth++;
 
     if(json_add_token(parser, JSON_TOKEN_ARRAY) < 0)
@@ -745,12 +754,16 @@ static int json_parse_array(json_parser_t *parser)
         return -1;
     }
 
+    json_token_t *arr_token = &parser->tokens[parser->token_count - 1];
+    arr_token->start = start_pos; // Start at '['
+    arr_token->end = 0;
     parser->pos++; // Skip '['
     json_skip_whitespace(parser);
 
     if(parser->json[parser->pos] == ']')
     {
         parser->pos++;
+        arr_token->end = parser->pos; // End after ']'
         parser->depth--;
         return 0;
     }
@@ -768,6 +781,7 @@ static int json_parse_array(json_parser_t *parser)
         if(parser->json[parser->pos] == ']')
         {
             parser->pos++;
+            arr_token->end = parser->pos; // Set end after ']'
             parser->depth--;
             return 0;
         }
