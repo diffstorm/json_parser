@@ -145,7 +145,7 @@ TEST_F(JsonParserTest, ExceedMaxDepth)
 
 TEST_F(JsonParserTest, StringTooLong)
 {
-    std::string long_str(256, 'a');
+    std::string long_str(JSON_DEFAULT_MAX_STRING, 'a');
     std::string json = "\"" + long_str + "\"";
     json_parser_init(&parser, json.c_str(), json.size());
     EXPECT_EQ(json_parser_parse(&parser), JSON_ERROR_STRING_TOO_LONG);
