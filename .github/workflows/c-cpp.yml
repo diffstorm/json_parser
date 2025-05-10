@@ -42,6 +42,7 @@ jobs:
       run: ./demo_cpp
 
     - name: Compare demo outputs
+      working-directory: ./build
       run: |
         ./demo > output1.txt
         ./demo_cpp > output2.txt
