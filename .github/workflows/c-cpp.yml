@@ -50,6 +50,8 @@ jobs:
           echo "Outputs differ!"
           diff output1.txt output2.txt
           exit 1
+        else
+          echo "Outputs equal!"
         fi
 
     - name: Run Tests
