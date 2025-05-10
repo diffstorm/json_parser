@@ -41,6 +41,16 @@ jobs:
       working-directory: ./build
       run: ./demo_cpp
 
+    - name: Compare demo outputs
+      run: |
+        ./demo > output1.txt
+        ./demo_cpp > output2.txt
+        if ! diff -q output1.txt output2.txt; then
+          echo "Outputs differ!"
+          diff output1.txt output2.txt
+          exit 1
+        fi
+
     - name: Run Tests
       working-directory: ./build
       run: ./json_parser_tests

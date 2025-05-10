@@ -51,7 +51,7 @@ int main()
                 break;
 
             case JSON_TOKEN_NUMBER:
-                printf("Number: %f\n", t->value.number);
+                printf("Number: %g\n", t->value.number);
                 break;
 
             case JSON_TOKEN_TRUE:
