@@ -58,6 +58,10 @@ jobs:
       working-directory: ./build
       run: ./json_parser_tests
 
+    - name: Run Json File Validation Test
+      working-directory: ./build
+      run: ./validation_test
+
     - name: Generate Coverage Report
       run: |
         lcov --capture --directory ./build --output-file coverage.info \

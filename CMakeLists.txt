@@ -14,6 +14,9 @@ add_library(json_parser STATIC
     json_parser.c
 )
 
+# Increase token count for validation test
+target_compile_definitions(json_parser PRIVATE JSON_DEFAULT_MAX_TOKENS=5120)
+
 set_target_properties(json_parser PROPERTIES
     C_VISIBILITY_PRESET hidden
     INTERPROCEDURAL_OPTIMIZATION FALSE
@@ -54,8 +57,22 @@ target_link_libraries(json_parser_tests
     Threads::Threads
 )
 
+# Validation Test executable
+add_executable(validation_test
+    validation_test.cpp
+)
+
+target_link_libraries(validation_test
+    PRIVATE
+    json_parser
+    GTest::GTest
+    GTest::Main
+    Threads::Threads
+)
+
 enable_testing()
 add_test(NAME json_parser_tests COMMAND json_parser_tests)
+add_test(NAME validation_test COMMAND validation_test)
 
 # Installation configuration
 install(TARGETS json_parser

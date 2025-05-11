@@ -34,6 +34,13 @@ extern "C" {
 #define JSON_DEFAULT_MAX_STRING 256
 #endif
 
+// ASCII optimization for whitespace skipping
+#ifdef JSON_USE_SIMPLE_WHITESPACE_SKIPPING
+#define IS_WHITESPACE(c) ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
+#else
+#define IS_WHITESPACE(c) isspace(c)
+#endif
+
 typedef enum
 {
     JSON_ERROR_NONE = 0,
@@ -46,7 +53,8 @@ typedef enum
     JSON_ERROR_NESTING_DEPTH,
     JSON_ERROR_INVALID_NUMBER,
     JSON_ERROR_TRAILING_CHARS,
-    JSON_ERROR_ALLOCATION_FAILED
+    JSON_ERROR_ALLOCATION_FAILED,
+    JSON_ERROR_EMPTY_INPUT
 } json_error_t;
 
 typedef enum
@@ -205,7 +213,7 @@ const json_token_t *json_get_tokens(const json_parser_t *parser, size_t *count)
 
 static void json_skip_whitespace(json_parser_t *parser)
 {
-    while(parser->pos < parser->length && isspace(parser->json[parser->pos]))
+    while(parser->pos < parser->length && IS_WHITESPACE(parser->json[parser->pos]))
     {
         parser->pos++;
     }
@@ -592,6 +600,7 @@ static int json_parse_literal(json_parser_t *parser, const char *literal, json_t
         return -1;
     }
 
+    size_t literal_start_pos = parser->pos;
     parser->pos += len;
 
     if(json_add_token(parser, type))
@@ -599,6 +608,9 @@ static int json_parse_literal(json_parser_t *parser, const char *literal, json_t
         return -1;
     }
 
+    json_token_t *token = &parser->tokens[parser->token_count - 1];
+    token->start = literal_start_pos;
+    token->end = parser->pos;
     return 0;
 }
 
@@ -674,7 +686,7 @@ static int json_parse_object(json_parser_t *parser)
     if(parser->json[parser->pos] == '}')
     {
         parser->pos++;
-        obj_token->end = parser->pos; // Set end after closing '}'
+        obj_token->end = parser->pos;
         parser->depth--;
         return 0;
     }
@@ -714,6 +726,8 @@ static int json_parse_object(json_parser_t *parser)
             json_set_error(parser, JSON_ERROR_UNEXPECTED_CHAR);
             return -1;
         }
+
+        json_skip_whitespace(parser);
 
         if(json_parse_value(parser))
         {
@@ -763,7 +777,7 @@ static int json_parse_array(json_parser_t *parser)
     if(parser->json[parser->pos] == ']')
     {
         parser->pos++;
-        arr_token->end = parser->pos; // End after ']'
+        arr_token->end = parser->pos;
         parser->depth--;
         return 0;
     }
@@ -777,16 +791,14 @@ static int json_parse_array(json_parser_t *parser)
             break;
         }
 
-        // Check for closing bracket before parsing next element
         if(parser->json[parser->pos] == ']')
         {
             parser->pos++;
-            arr_token->end = parser->pos; // Set end after ']'
+            arr_token->end = parser->pos;
             parser->depth--;
             return 0;
         }
 
-        // Parse the array element
         if(json_parse_value(parser))
         {
             return -1;
@@ -794,18 +806,15 @@ static int json_parse_array(json_parser_t *parser)
 
         json_skip_whitespace(parser);
 
-        // Check for comma or closing bracket after the element
         if(parser->json[parser->pos] == ']')
         {
-            // Handle closing bracket in the next iteration
             continue;
         }
         else if(parser->json[parser->pos] == ',')
         {
-            parser->pos++; // Consume the comma
+            parser->pos++;
             json_skip_whitespace(parser);
 
-            // Trailing comma check: if next character is ']', it's invalid
             if(parser->json[parser->pos] == ']')
             {
                 json_set_error(parser, JSON_ERROR_UNEXPECTED_CHAR);
@@ -814,7 +823,6 @@ static int json_parse_array(json_parser_t *parser)
         }
         else
         {
-            // Neither comma nor closing bracket
             json_set_error(parser, JSON_ERROR_UNEXPECTED_CHAR);
             return -1;
         }
@@ -831,7 +839,15 @@ json_error_t json_parser_parse(json_parser_t *parser)
 
     if(parser->pos >= parser->length)
     {
-        json_set_error(parser, JSON_ERROR_INVALID_TOKEN);
+        if(parser->length == 0 || parser->pos == parser->length)
+        {
+            json_set_error(parser, JSON_ERROR_EMPTY_INPUT);
+        }
+        else
+        {
+            json_set_error(parser, JSON_ERROR_INVALID_TOKEN);
+        }
+
         return parser->error;
     }
 
