@@ -7,7 +7,9 @@
 ![GitHub Stars](https://img.shields.io/github/stars/diffstorm/json_parser?style=social)
 ![Platforms](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 
-A lightweight, single-header C library for parsing JSON data. Designed for simplicity and portability, this parser provides a low-footprint solution to decode JSON-formatted strings into structured tokens while adhering to core JSON specifications.
+A lightweight, single-header C library for parsing JSON data. Designed for simplicity and portability, it provides a low-footprint solution to decode JSON strings into structured tokens, fully compliant with core JSON specifications.
+
+This zero-dependency parser is ideal for embedded or performance-critical environments. It offers safe, efficient token-based parsing with configurable limits, and can be easily integrated into any project with a clean single-header implementation.
 
 ## Features
 
@@ -48,6 +50,7 @@ The library is implemented as a single-header file (`json_parser.h`) with option
 	./demo
 	./demo_cpp
     ./json_parser_test
+	./validation_test
     ```
 
 ## Usage
